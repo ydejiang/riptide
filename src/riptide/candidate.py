@@ -232,8 +232,23 @@ def plot_subints(X, T):
     T : float
         Integration time in seconds
     """
-    __, nbins = X.shape
+    ##
+    # per-subint normalization (each subint scaled independently)
+    nsubs, nbins = X.shape
+    X_norm = np.zeros_like(X, dtype=np.float32)
+    for i in range(nsubs):
+        row = X[i, :]
+        min_val = row.min()
+        max_val = row.max()
 
+        if np.isclose(min_val, max_val, atol=1e-7):
+            X_norm[i, :] = 0.0
+        else:
+            X_norm[i, :] = (row - min_val) / (max_val - min_val)
+            
+    # use normalized subints for plotting
+    X = X_norm
+    ##
     X = np.hstack((X, X[:, : nbins // 2]))
     __, nbins_ext = X.shape
 
